@@ -1,0 +1,20 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: insurer-payment-service
+  datasource:
+    url: jdbc:mysql://172.27.34.81:3306/insurer_payments_db?createDatabaseIfNotExist=true&autoReconnect=true&useSSL=false
+    username: root
+    password: P3riculum
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    root: info
+springdoc:
+  api-docs:
+    path: /insurer-payments-service-docs
