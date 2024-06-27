@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/payments")
@@ -44,12 +44,7 @@ public class PaymentController {
 
     }
 
-//    @PutMapping("/{paymentId}")
-//    public ResponseEntity<CreatePaymentResponse> updatePayment(@PathVariable Long paymentId,
-//                                                               @RequestBody CreatePaymentRequest request) {
-//        CreatePaymentResponse response = paymentService.updatePayment(paymentId, request);
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<CreatePaymentResponse>>> getAllPayments() {
         List<CreatePaymentResponse> data = paymentService.getAllPayments();
@@ -90,5 +85,4 @@ public class PaymentController {
         ApiResponse<List<TotalPaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
 }

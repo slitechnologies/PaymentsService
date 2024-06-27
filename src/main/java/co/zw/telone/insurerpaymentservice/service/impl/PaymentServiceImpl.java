@@ -143,13 +143,47 @@ public class PaymentServiceImpl implements PaymentService {
     public List<TotalPaymentResponse> getDailyTotalPayment(LocalDate dateCreated) {
         List<Payment> payment = paymentRepository.findByCreatedAt(dateCreated);
 
-//       var payments =  List.of()
-        return Collections.singletonList(TotalPaymentResponse.builder()
+       var payments =  List.of(TotalPaymentResponse.builder()
+                .policyName("Third Party")
+                .categoryName("Motor Vehicle Insurance")
+                .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
+                .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
+                .build(),
+                TotalPaymentResponse.builder()
                 .policyName("Third Party")
                 .categoryName("Motor Vehicle Insurance")
                 .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
                 .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
                 .build());
+        return List.of(
+                TotalPaymentResponse.builder()
+                        .policyName("Third Party")
+                        .categoryName("Motor Vehicle Insurance")
+                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
+                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
+                        .build(),
+                TotalPaymentResponse.builder()
+                .policyName("Third Party")
+                .categoryName("Motor Vehicle Insurance")
+                .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
+                .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
+                .build(),
+                TotalPaymentResponse.builder()
+                        .policyName("Gold Class")
+                        .categoryName("Life Insurance")
+                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(3000)))
+                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(60000))))
+                        .build(),
+
+                TotalPaymentResponse.builder()
+                        .policyName("Third Party")
+                        .categoryName("Property")
+                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
+                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
+                        .build()
+                );
+
+
     }
 
 //    @Override
