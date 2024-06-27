@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -133,28 +132,22 @@ public class PaymentServiceImpl implements PaymentService {
         return payment.stream().map(this::mapToPaymentResponse).toList();
     }
 
-//    @Override
-//    public List<CreatePaymentResponse> getAllPaymentsByDate(LocalDate dateCreated) {
-//        List<Payment> payment = paymentRepository.findByCreatedAt(dateCreated);
-//        return payment.stream().map(this::mapToPaymentResponse).toList();
-//    }
 
     @Override
     public List<TotalPaymentResponse> getDailyTotalPayment(LocalDate dateCreated) {
         List<Payment> payment = paymentRepository.findByCreatedAt(dateCreated);
 
-       var payments =  List.of(TotalPaymentResponse.builder()
-                .policyName("Third Party")
-                .categoryName("Motor Vehicle Insurance")
-                .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
-                .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
-                .build(),
-                TotalPaymentResponse.builder()
-                .policyName("Third Party")
-                .categoryName("Motor Vehicle Insurance")
-                .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
-                .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
-                .build());
+        return getTotalPaymentResponses();
+
+
+    }
+
+    @Override
+    public List<TotalPaymentResponse> getPaymentByDateRange(LocalDate startDate, LocalDate endDate) {
+        return getTotalPaymentResponses();
+    }
+
+    private List<TotalPaymentResponse> getTotalPaymentResponses() {
         return List.of(
                 TotalPaymentResponse.builder()
                         .policyName("Third Party")
@@ -163,11 +156,11 @@ public class PaymentServiceImpl implements PaymentService {
                         .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
                         .build(),
                 TotalPaymentResponse.builder()
-                .policyName("Third Party")
-                .categoryName("Motor Vehicle Insurance")
-                .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
-                .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
-                .build(),
+                        .policyName("Third Party")
+                        .categoryName("Motor Vehicle Insurance")
+                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
+                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
+                        .build(),
                 TotalPaymentResponse.builder()
                         .policyName("Gold Class")
                         .categoryName("Life Insurance")
@@ -181,12 +174,10 @@ public class PaymentServiceImpl implements PaymentService {
                         .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
                         .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
                         .build()
-                );
-
-
+        );
     }
 
-//    @Override
+    //    @Override
 //    public TotalPaymentResponse getDailyTotalPayment(LocalDate dateCreated) {
 //        List<Payment> payments = paymentRepository.findByCreatedAt(dateCreated);
 //

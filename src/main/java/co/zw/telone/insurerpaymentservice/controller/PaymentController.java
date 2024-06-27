@@ -85,4 +85,13 @@ public class PaymentController {
         ApiResponse<List<TotalPaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/periodical/Transactions/{start-date}/{end-date}")
+    public ResponseEntity<ApiResponse<List<TotalPaymentResponse>>> getPaymentsByDateRange(
+            @PathVariable("start-date") LocalDate startDate,  @PathVariable("end-date") LocalDate endDate) {
+        List<TotalPaymentResponse> data = paymentService.getPaymentByDateRange(startDate, endDate);
+        ApiResponse<List<TotalPaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }
