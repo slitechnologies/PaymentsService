@@ -7,6 +7,7 @@ import co.zw.telone.insurerpaymentservice.dto.TotalPaymentResponse;
 import co.zw.telone.insurerpaymentservice.exceptions.NotFoundException;
 import co.zw.telone.insurerpaymentservice.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -93,5 +94,12 @@ public class PaymentController {
         ApiResponse<List<TotalPaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+    @GetMapping("transactions/from/to")
+    public ResponseEntity<ApiResponse<TotalPaymentResponse>> createPaymentByReferenceDates( @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                                        @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        TotalPaymentResponse data = paymentService.getTotalPaymentsInDateRange(startDate, endDate);
+        ApiResponse<TotalPaymentResponse> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
 
+    }
 }

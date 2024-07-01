@@ -18,4 +18,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 //    List<Payment> findByCreatedAt(LocalDate createdAt);
 
     List<Payment> findByCreatedAt(LocalDate dateCreated);
+    
+
+    List<Payment> findByCreatedAtBetween(LocalDate startDate, LocalDate endDate);
 }

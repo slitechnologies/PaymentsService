@@ -58,6 +58,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .salesAgentId(savedPayment.getSalesAgentId())
                 .propertyId(savedPayment.getPropertyId())
                 .usdAmount(savedPayment.getUsdAmount())
+                .zigAmount(savedPayment.getZigAmount())
                 .method(savedPayment.getMethod())
                 .startDate(savedPayment.getStartDate())
                 .endDate(savedPayment.getEndDate())
@@ -195,6 +196,28 @@ public class PaymentServiceImpl implements PaymentService {
 //                .totalZigAmount(totalZigAmount)
 //                .build();
 //    }
+
+    @Override
+    public TotalPaymentResponse getTotalPaymentsInDateRange(LocalDate startDate, LocalDate endDate) {
+        List<Payment> payments = paymentRepository.findByCreatedAtBetween(startDate, endDate);
+
+        BigDecimal totalUsdAmount = payments.stream()
+                .map(Payment::getUsdAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalZigAmount = payments.stream()
+                .map(Payment::getZigAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return TotalPaymentResponse.builder()
+                .policyName("Third Party")
+                .categoryName("Motor Vehicle Insurance")
+                .totalUsdAmount(totalUsdAmount)
+                .totalZigAmount(totalZigAmount)
+                .build();
+    }
+
+
     private CreatePaymentResponse mapToPaymentResponse(Payment payment) {
         return CreatePaymentResponse.builder()
                 .referenceNumber(payment.getReferenceNumber())

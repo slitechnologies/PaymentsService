@@ -27,4 +27,5 @@ public interface PaymentService {
     List<TotalPaymentResponse> getDailyTotalPayment(LocalDate dateCreated);
 
     List<TotalPaymentResponse> getPaymentByDateRange(LocalDate startDate, LocalDate endDate);
+    TotalPaymentResponse getTotalPaymentsInDateRange(LocalDate startDate, LocalDate endDate);
 }
