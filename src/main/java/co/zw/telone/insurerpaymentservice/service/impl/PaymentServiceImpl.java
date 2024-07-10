@@ -1,8 +1,10 @@
 package co.zw.telone.insurerpaymentservice.service.impl;
 
+import co.zw.telone.insurerpaymentservice.constants.Currency;
 import co.zw.telone.insurerpaymentservice.dto.CreatePaymentRequest;
 import co.zw.telone.insurerpaymentservice.dto.CreatePaymentResponse;
-import co.zw.telone.insurerpaymentservice.dto.TotalPaymentResponse;
+import co.zw.telone.insurerpaymentservice.dto.SumOfPaymentsResponse;
+import co.zw.telone.insurerpaymentservice.dto.TaxReportResponse;
 import co.zw.telone.insurerpaymentservice.exceptions.NotFoundException;
 import co.zw.telone.insurerpaymentservice.exceptions.ResourceNotFoundException;
 import co.zw.telone.insurerpaymentservice.model.Payment;
@@ -15,8 +17,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +39,11 @@ public class PaymentServiceImpl implements PaymentService {
                 .insurerId(request.getInsurerId())
                 .productId(request.getProductId())
                 .clientId(request.getClientId())
+                .userId(request.getUserId())
                 .salesAgentId(request.getSalesAgentId())
                 .propertyId(request.getPropertyId())
-                .usdAmount(request.getUsdAmount())
-                .zigAmount(request.getZigAmount())
+                .amount(request.getAmount())
+                .currencyCode(request.getCurrencyCode())
                 .method(request.getMethod())
                 .startDate(LocalDate.now())
                 .createdAt(LocalDate.now())
@@ -54,11 +60,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .insurerId(savedPayment.getInsurerId())
                 .productId(savedPayment.getProductId())
                 .clientId(savedPayment.getClientId())
+                .userId(savedPayment.getUserId())
                 .createdAt(savedPayment.getCreatedAt())
                 .salesAgentId(savedPayment.getSalesAgentId())
                 .propertyId(savedPayment.getPropertyId())
-                .usdAmount(savedPayment.getUsdAmount())
-                .zigAmount(savedPayment.getZigAmount())
+                .amount(savedPayment.getAmount())
+                .currency(savedPayment.getCurrencyCode())
                 .method(savedPayment.getMethod())
                 .startDate(savedPayment.getStartDate())
                 .endDate(savedPayment.getEndDate())
@@ -78,11 +85,14 @@ public class PaymentServiceImpl implements PaymentService {
                     .referenceNumber(payment.getReferenceNumber())
                     .paymentId(payment.getId())
                     .insurerId(payment.getInsurerId())
-                    .propertyId(payment.getProductId())
+                    .productId(payment.getProductId())
+                    .clientId(payment.getClientId())
+                    .userId(payment.getUserId())
+                    .currency(payment.getCurrencyCode())
                     .createdAt(payment.getCreatedAt())
                     .salesAgentId(payment.getSalesAgentId())
                     .propertyId(payment.getPropertyId())
-                    .usdAmount(payment.getUsdAmount())
+                    .amount(payment.getAmount())
                     .method(payment.getMethod())
                     .startDate(payment.getStartDate())
                     .endDate(payment.getEndDate())
@@ -100,11 +110,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .referenceNumber(payment.getReferenceNumber())
                 .paymentId(payment.getId())
                 .insurerId(payment.getInsurerId())
-                .propertyId(payment.getProductId())
+                .productId(payment.getProductId())
+                .userId(payment.getUserId())
+                .clientId(payment.getClientId())
                 .createdAt(payment.getCreatedAt())
                 .salesAgentId(payment.getSalesAgentId())
                 .propertyId(payment.getPropertyId())
-                .usdAmount(payment.getUsdAmount())
+                .amount(payment.getAmount())
+                .currency(payment.getCurrencyCode())
                 .method(payment.getMethod())
                 .startDate(payment.getStartDate())
                 .endDate(payment.getEndDate())
@@ -125,96 +138,109 @@ public class PaymentServiceImpl implements PaymentService {
         return payment.stream().map(this::mapToPaymentResponse).toList();
     }
 
+
+
     @Override
-    public List<CreatePaymentResponse> getPaymentsByInsurerId(Long insurerId) {
-        List<Payment> payment = paymentRepository.findByInsurerId(insurerId);
-        if (payment.isEmpty())
+    public List<SumOfPaymentsResponse> getPaymentsByInsurerId(Long insurerId) {
+        List<Payment> payments = paymentRepository.findByInsurerId(insurerId);
+        if (payments.isEmpty())
             throw new ResourceNotFoundException(NOT_FOUND);
-        return payment.stream().map(this::mapToPaymentResponse).toList();
+
+        return getSumOfPaymentsResponses(payments);
+    }
+
+    private List<SumOfPaymentsResponse> getSumOfPaymentsResponses(List<Payment> payments) {
+        Map<Currency, BigDecimal> totalAmountPerCurrency = payments.stream()
+                .collect(Collectors.groupingBy(
+                        Payment::getCurrencyCode,
+                        Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)
+                ));
+
+        List<SumOfPaymentsResponse> responses = new ArrayList<>();
+        for (Map.Entry<Currency, BigDecimal> entry : totalAmountPerCurrency.entrySet()) {
+            responses.add(
+                    SumOfPaymentsResponse.builder()
+                            .policyName("Third Party")
+                            .categoryName("Motor Vehicle Insurance")
+                            .totalAmount(entry.getValue())
+                            .currencyCode(entry.getKey())
+                            .build()
+            );
+        }
+
+        return responses;
     }
 
 
     @Override
-    public List<TotalPaymentResponse> getDailyTotalPayment(LocalDate dateCreated) {
-        List<Payment> payment = paymentRepository.findByCreatedAt(dateCreated);
-
-        return getTotalPaymentResponses();
-
-
-    }
-
-    @Override
-    public List<TotalPaymentResponse> getPaymentByDateRange(LocalDate startDate, LocalDate endDate) {
-        return getTotalPaymentResponses();
-    }
-
-    private List<TotalPaymentResponse> getTotalPaymentResponses() {
-        return List.of(
-                TotalPaymentResponse.builder()
-                        .policyName("Third Party")
-                        .categoryName("Motor Vehicle Insurance")
-                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
-                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
-                        .build(),
-                TotalPaymentResponse.builder()
-                        .policyName("Third Party")
-                        .categoryName("Motor Vehicle Insurance")
-                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
-                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
-                        .build(),
-                TotalPaymentResponse.builder()
-                        .policyName("Gold Class")
-                        .categoryName("Life Insurance")
-                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(3000)))
-                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(60000))))
-                        .build(),
-
-                TotalPaymentResponse.builder()
-                        .policyName("Third Party")
-                        .categoryName("Property")
-                        .totalUsdAmount(BigDecimal.ZERO.add(BigDecimal.valueOf(300)))
-                        .totalZigAmount(BigDecimal.ZERO.add((BigDecimal.valueOf(6000))))
-                        .build()
-        );
-    }
-
-    //    @Override
-//    public TotalPaymentResponse getDailyTotalPayment(LocalDate dateCreated) {
-//        List<Payment> payments = paymentRepository.findByCreatedAt(dateCreated);
-//
-//        BigDecimal totalUsdAmount = payments.stream()
-//                .map(Payment::getUsdAmount)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//
-//        BigDecimal totalZigAmount = payments.stream()
-//                .map(Payment::getZigAmount)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//
-//        return TotalPaymentResponse.builder()
-////                .insurerId(1L)
-//                .totalUsdAmount(totalUsdAmount)
-//                .totalZigAmount(totalZigAmount)
-//                .build();
-//    }
-
-    @Override
-    public TotalPaymentResponse getTotalPaymentsInDateRange(LocalDate startDate, LocalDate endDate) {
+    public List<SumOfPaymentsResponse> getSumOfPaymentsByDateRange(LocalDate startDate, LocalDate endDate) {
         List<Payment> payments = paymentRepository.findByCreatedAtBetween(startDate, endDate);
+        return getSumOfPaymentsResponses(payments);
+    }
 
-        BigDecimal totalUsdAmount = payments.stream()
-                .map(Payment::getUsdAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal totalZigAmount = payments.stream()
-                .map(Payment::getZigAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    @Override
+    public List<SumOfPaymentsResponse> getSumOfPaymentsByDate(LocalDate dateOfTransaction) {
+        List<Payment> payments = paymentRepository.findByCreatedAt(dateOfTransaction);
+        return getSumOfPaymentsResponses(payments);
+    }
 
-        return TotalPaymentResponse.builder()
-                .policyName("Third Party")
-                .categoryName("Motor Vehicle Insurance")
-                .totalUsdAmount(totalUsdAmount)
-                .totalZigAmount(totalZigAmount)
-                .build();
+    @Override
+    public List<TaxReportResponse> getTaxReportByDate(LocalDate dateOfTransaction) {
+        List<Payment> payments = paymentRepository.findByCreatedAt(dateOfTransaction);
+        if (payments.isEmpty())
+            throw new ResourceNotFoundException(NOT_FOUND);
+
+        Map<Currency, BigDecimal> totalAmountPerCurrency = payments.stream()
+                .collect(Collectors.groupingBy(
+                        Payment::getCurrencyCode,
+                        Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)
+                ));
+
+        List<TaxReportResponse> responses = new ArrayList<>();
+        for (Map.Entry<Currency, BigDecimal> entry : totalAmountPerCurrency.entrySet()) {
+            BigDecimal taxAmount = entry.getValue().multiply(new BigDecimal("0.02")); // 2% tax
+            responses.add(
+                    TaxReportResponse.builder()
+                            .policyName("Third Party")
+                            .categoryName("Motor Vehicle Insurance")
+                            .totalAmount(entry.getValue())
+                            .taxAmount(taxAmount)
+                            .currencyCode(entry.getKey())
+                            .build()
+            );
+        }
+
+        return responses;
+    }
+
+    @Override
+    public List<TaxReportResponse> getTaxReportTotal() {
+        List<Payment> payments = paymentRepository.findAll();
+        if (payments.isEmpty())
+            throw new ResourceNotFoundException(NOT_FOUND);
+
+        Map<Currency, BigDecimal> totalAmountPerCurrency = payments.stream()
+                .collect(Collectors.groupingBy(
+                        Payment::getCurrencyCode,
+                        Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)
+                ));
+
+        List<TaxReportResponse> responses = new ArrayList<>();
+        for (Map.Entry<Currency, BigDecimal> entry : totalAmountPerCurrency.entrySet()) {
+            BigDecimal taxAmount = entry.getValue().multiply(new BigDecimal("0.02")); // 2% tax
+            responses.add(
+                    TaxReportResponse.builder()
+                            .policyName("Third Party")
+                            .categoryName("Motor Vehicle Insurance")
+                            .totalAmount(entry.getValue())
+                            .taxAmount(taxAmount)
+                            .currencyCode(entry.getKey())
+                            .build()
+            );
+        }
+
+        return responses;
     }
 
 
@@ -223,12 +249,17 @@ public class PaymentServiceImpl implements PaymentService {
                 .referenceNumber(payment.getReferenceNumber())
                 .paymentId(payment.getId())
                 .insurerId(payment.getInsurerId())
-                .propertyId(payment.getProductId())
+                .propertyId(payment.getPropertyId())
+                .userId(payment.getUserId())
+                .clientId(payment.getClientId())
                 .createdAt(payment.getCreatedAt())
                 .salesAgentId(payment.getSalesAgentId())
                 .propertyId(payment.getPropertyId())
-                .usdAmount(payment.getUsdAmount())
-                .zigAmount(payment.getZigAmount())
+                .productId(payment.getProductId())
+                .userId(payment.getUserId())
+                .amount(payment.getAmount())
+                .currency(payment.getCurrencyCode())
+                .currency(payment.getCurrencyCode())
                 .method(payment.getMethod())
                 .startDate(payment.getStartDate())
                 .endDate(payment.getEndDate())

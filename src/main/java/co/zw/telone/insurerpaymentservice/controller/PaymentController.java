@@ -1,9 +1,7 @@
 package co.zw.telone.insurerpaymentservice.controller;
 
 import co.zw.telone.insurerpaymentservice.constants.ApiResponse;
-import co.zw.telone.insurerpaymentservice.dto.CreatePaymentRequest;
-import co.zw.telone.insurerpaymentservice.dto.CreatePaymentResponse;
-import co.zw.telone.insurerpaymentservice.dto.TotalPaymentResponse;
+import co.zw.telone.insurerpaymentservice.dto.*;
 import co.zw.telone.insurerpaymentservice.exceptions.NotFoundException;
 import co.zw.telone.insurerpaymentservice.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -68,38 +66,39 @@ public class PaymentController {
 
 
     @GetMapping("all-payments/by-insurer/{insurer-id}")
-    public ResponseEntity<ApiResponse<List<CreatePaymentResponse>>> getAllPaymentsByInsurer(@PathVariable("insurer-id") Long insurerId) {
-        List<CreatePaymentResponse> data = paymentService.getPaymentsByInsurerId(insurerId);
-        ApiResponse<List<CreatePaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+    public ResponseEntity<ApiResponse<List<SumOfPaymentsResponse>>> getAllPaymentsByInsurer(@PathVariable("insurer-id") Long insurerId) {
+        List<SumOfPaymentsResponse> data = paymentService.getPaymentsByInsurerId(insurerId);
+        ApiResponse<List<SumOfPaymentsResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-//
-//    @GetMapping("/Transaction/{date-of-transaction}")
-//    public ResponseEntity<ApiResponse<List<CreatePaymentResponse>>> getAllPaymentsByDateOfTransaction(@PathVariable("date-of-transaction") LocalDate dateOfTransaction) {
-//        List<CreatePaymentResponse> data =paymentService.getAllPaymentsByDate(dateOfTransaction);
-//        ApiResponse<List<CreatePaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
-//        return ResponseEntity.status(HttpStatus.OK).body(response);
-//    }
+
     @GetMapping("/daily/Transactions/{date-of-transaction}")
-    public ResponseEntity<ApiResponse<List<TotalPaymentResponse>>> getPaymentsByDateOfTransaction(@PathVariable("date-of-transaction") LocalDate dateOfTransaction) {
-        List<TotalPaymentResponse> data = paymentService.getDailyTotalPayment(dateOfTransaction);
-        ApiResponse<List<TotalPaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+    public ResponseEntity<ApiResponse<List<SumOfPaymentsResponse>>> getPaymentsByDateOfTransaction(@PathVariable("date-of-transaction") LocalDate dateOfTransaction) {
+        List<SumOfPaymentsResponse> data = paymentService.getSumOfPaymentsByDate(dateOfTransaction);
+        ApiResponse<List<SumOfPaymentsResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/periodical/Transactions/{start-date}/{end-date}")
-    public ResponseEntity<ApiResponse<List<TotalPaymentResponse>>> getPaymentsByDateRange(
-            @PathVariable("start-date") LocalDate startDate,  @PathVariable("end-date") LocalDate endDate) {
-        List<TotalPaymentResponse> data = paymentService.getPaymentByDateRange(startDate, endDate);
-        ApiResponse<List<TotalPaymentResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+
+    @GetMapping("/all-payments/currency-total/start-date/end-date")
+    public ResponseEntity<ApiResponse<List<SumOfPaymentsResponse>>> getSumOfPayments(@RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                               @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+       List<SumOfPaymentsResponse> data = paymentService.getSumOfPaymentsByDateRange(startDate, endDate);
+
+        ApiResponse<List<SumOfPaymentsResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-    @GetMapping("transactions/from/to")
-    public ResponseEntity<ApiResponse<TotalPaymentResponse>> createPaymentByReferenceDates( @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                                                                        @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        TotalPaymentResponse data = paymentService.getTotalPaymentsInDateRange(startDate, endDate);
-        ApiResponse<TotalPaymentResponse> response = new ApiResponse<>(HttpStatus.OK, data);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
 
+    @GetMapping("/tax-report/by-date")
+    public ResponseEntity<ApiResponse<List<TaxReportResponse>>> getTaxReportByDate(@RequestParam("reportDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate reportDate){
+        List<TaxReportResponse> data = paymentService.getTaxReportByDate(reportDate);
+        ApiResponse<List<TaxReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+    @GetMapping("/total-tax/report")
+    public ResponseEntity<ApiResponse<List<TaxReportResponse>>> getTotalTaxReport(){
+        List<TaxReportResponse> data = paymentService.getTaxReportTotal();
+        ApiResponse<List<TaxReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

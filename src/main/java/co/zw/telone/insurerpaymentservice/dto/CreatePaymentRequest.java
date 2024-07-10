@@ -1,5 +1,6 @@
 package co.zw.telone.insurerpaymentservice.dto;
 
+import co.zw.telone.insurerpaymentservice.constants.Currency;
 import co.zw.telone.insurerpaymentservice.constants.PaymentMethod;
 import co.zw.telone.insurerpaymentservice.constants.PaymentStatus;
 import jakarta.persistence.EnumType;
@@ -21,12 +22,12 @@ public class CreatePaymentRequest {
     private Long productId;
     private LocalDate createdAt;
     private Long clientId;
+    private Long userId;
     private Long salesAgentId;
     private Long propertyId;
-    private BigDecimal usdAmount;
-    private BigDecimal zigAmount;
-    private BigDecimal totalUsdAmount;
-    private BigDecimal totalZigAmount;
+    private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
+    private Currency currencyCode;
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
     private LocalDate startDate;

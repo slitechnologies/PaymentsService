@@ -1,9 +1,7 @@
 package co.zw.telone.insurerpaymentservice.service;
 
 
-import co.zw.telone.insurerpaymentservice.dto.CreatePaymentRequest;
-import co.zw.telone.insurerpaymentservice.dto.CreatePaymentResponse;
-import co.zw.telone.insurerpaymentservice.dto.TotalPaymentResponse;
+import co.zw.telone.insurerpaymentservice.dto.*;
 import co.zw.telone.insurerpaymentservice.exceptions.NotFoundException;
 
 import java.time.LocalDate;
@@ -21,11 +19,12 @@ public interface PaymentService {
 
     List<CreatePaymentResponse> getAllPayments();
 
-    List<CreatePaymentResponse> getPaymentsByInsurerId(Long insurerId);
+    List<SumOfPaymentsResponse> getPaymentsByInsurerId(Long insurerId);
 
-    //    List<CreatePaymentResponse> getAllPaymentsByDate(LocalDate dateOfCreation);
-    List<TotalPaymentResponse> getDailyTotalPayment(LocalDate dateCreated);
+    List<SumOfPaymentsResponse> getSumOfPaymentsByDateRange(LocalDate startDate, LocalDate endDate);
 
-    List<TotalPaymentResponse> getPaymentByDateRange(LocalDate startDate, LocalDate endDate);
-    TotalPaymentResponse getTotalPaymentsInDateRange(LocalDate startDate, LocalDate endDate);
+    List<SumOfPaymentsResponse> getSumOfPaymentsByDate(LocalDate dateOfTransaction);
+
+    List<TaxReportResponse> getTaxReportByDate(LocalDate dateOfTransaction);
+    List<TaxReportResponse> getTaxReportTotal();
 }

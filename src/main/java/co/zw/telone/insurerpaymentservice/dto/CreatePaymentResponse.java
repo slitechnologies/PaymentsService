@@ -1,5 +1,6 @@
 package co.zw.telone.insurerpaymentservice.dto;
 
+import co.zw.telone.insurerpaymentservice.constants.Currency;
 import co.zw.telone.insurerpaymentservice.constants.PaymentMethod;
 import co.zw.telone.insurerpaymentservice.constants.PaymentStatus;
 import jakarta.persistence.EnumType;
@@ -9,7 +10,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -22,13 +22,13 @@ public class CreatePaymentResponse {
     private Long insurerId;
     private Long productId;
     private LocalDate createdAt;
+    private Long userId;
     private Long clientId;
     private Long salesAgentId;
     private Long propertyId;
-    private BigDecimal usdAmount;
-    private BigDecimal zigAmount;
-    private BigDecimal totalUsdAmount;
-    private BigDecimal totalZigAmount;
+    private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
+    private Currency currency;
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
     private LocalDate startDate;
