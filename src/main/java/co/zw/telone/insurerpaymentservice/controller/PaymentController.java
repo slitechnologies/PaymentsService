@@ -101,4 +101,34 @@ public class PaymentController {
         ApiResponse<List<TaxReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/all-commission")
+    public ResponseEntity<ApiResponse<List<CommissionReportResponse>>> getCommissionReport(){
+        List<CommissionReportResponse> data = paymentService.getCommissionReportTotal();
+        ApiResponse<List<CommissionReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+    }
+
+    @GetMapping("/commission/by-each/insurer")
+    public ResponseEntity<ApiResponse<List<CommissionReportResponse>>> getCommissionReportByInsurer(@RequestParam("insurerId") Long insurerId){
+        List<CommissionReportResponse> data = paymentService.getCommissionReportTotalByInsurerId(insurerId);
+        ApiResponse<List<CommissionReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+    }
+    @GetMapping("/commission-by/date")
+    public ResponseEntity<ApiResponse<List<CommissionReportResponse>>> getCommissionReportByDate(@RequestParam("dateOfTransaction") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateOfTransaction){
+        List<CommissionReportResponse> data = paymentService.getCommissionReportTotalByDate(dateOfTransaction);
+        ApiResponse<List<CommissionReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+    
+    @GetMapping("/commission/from/to")
+    public ResponseEntity<ApiResponse<List<CommissionReportResponse>>> getCommissionReportByDateRange(@RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                                                      @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate){
+        List<CommissionReportResponse> data = paymentService.getCommissionReportTotalByDateRange(startDate, endDate);
+        ApiResponse<List<CommissionReportResponse>> response = new ApiResponse<>(HttpStatus.OK, data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -1,10 +1,7 @@
 package co.zw.telone.insurerpaymentservice.service.impl;
 
 import co.zw.telone.insurerpaymentservice.constants.Currency;
-import co.zw.telone.insurerpaymentservice.dto.CreatePaymentRequest;
-import co.zw.telone.insurerpaymentservice.dto.CreatePaymentResponse;
-import co.zw.telone.insurerpaymentservice.dto.SumOfPaymentsResponse;
-import co.zw.telone.insurerpaymentservice.dto.TaxReportResponse;
+import co.zw.telone.insurerpaymentservice.dto.*;
 import co.zw.telone.insurerpaymentservice.exceptions.NotFoundException;
 import co.zw.telone.insurerpaymentservice.exceptions.ResourceNotFoundException;
 import co.zw.telone.insurerpaymentservice.model.Payment;
@@ -17,10 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -188,6 +182,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<TaxReportResponse> getTaxReportByDate(LocalDate dateOfTransaction) {
         List<Payment> payments = paymentRepository.findByCreatedAt(dateOfTransaction);
+        return getTaxReportResponses(payments);
+    }
+
+    private List<TaxReportResponse> getTaxReportResponses(List<Payment> payments) {
         if (payments.isEmpty())
             throw new ResourceNotFoundException(NOT_FOUND);
 
@@ -217,8 +215,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<TaxReportResponse> getTaxReportTotal() {
         List<Payment> payments = paymentRepository.findAll();
+        return getTaxReportResponses(payments);
+    }
+
+    @Override
+    public List<CommissionReportResponse> getCommissionReportTotal() {
+        List<Payment> payments = paymentRepository.findAll();
         if (payments.isEmpty())
-            throw new ResourceNotFoundException(NOT_FOUND);
+            return Collections.emptyList();
 
         Map<Currency, BigDecimal> totalAmountPerCurrency = payments.stream()
                 .collect(Collectors.groupingBy(
@@ -226,21 +230,71 @@ public class PaymentServiceImpl implements PaymentService {
                         Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)
                 ));
 
-        List<TaxReportResponse> responses = new ArrayList<>();
+        List<CommissionReportResponse> responses = new ArrayList<>();
         for (Map.Entry<Currency, BigDecimal> entry : totalAmountPerCurrency.entrySet()) {
-            BigDecimal taxAmount = entry.getValue().multiply(new BigDecimal("0.02")); // 2% tax
+            BigDecimal commissionAmount = entry.getValue().multiply(new BigDecimal("0.10")); // 10% commission
+            CommissionReportResponse response = CommissionReportResponse.builder()
+                    .policyName("Third Party")
+                    .categoryName("Motor Vehicle Insurance")
+                    .totalAmount(entry.getValue())
+                    .commissionAmount(commissionAmount)
+                    .currencyCode(entry.getKey())
+                    .build();
+            responses.add(response);
+        }
+
+        return responses;
+    }
+
+    @Override
+    public List<CommissionReportResponse> getCommissionReportTotalByInsurerId(Long insurerId) {
+        List<Payment> payments = paymentRepository.findByInsurerId(insurerId);
+        if (payments.isEmpty())
+            throw new ResourceNotFoundException(NOT_FOUND);
+
+        return getCommissionReportResponses(payments);
+    }
+
+    private List<CommissionReportResponse> getCommissionReportResponses(List<Payment> payments) {
+        Map<Currency, BigDecimal> totalAmountPerCurrency = payments.stream()
+                .collect(Collectors.groupingBy(
+                        Payment::getCurrencyCode,
+                        Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)
+                ));
+
+        List<CommissionReportResponse> responses = new ArrayList<>();
+        for (Map.Entry<Currency, BigDecimal> entry : totalAmountPerCurrency.entrySet()) {
+            BigDecimal commissionAmount = entry.getValue().multiply(new BigDecimal("0.10")); // 10% commission
             responses.add(
-                    TaxReportResponse.builder()
+                    CommissionReportResponse.builder()
                             .policyName("Third Party")
                             .categoryName("Motor Vehicle Insurance")
                             .totalAmount(entry.getValue())
-                            .taxAmount(taxAmount)
+                            .commissionAmount(commissionAmount)
                             .currencyCode(entry.getKey())
                             .build()
             );
         }
 
         return responses;
+    }
+
+    @Override
+    public List<CommissionReportResponse> getCommissionReportTotalByDate(LocalDate dateOfTransaction) {
+        List<Payment> payments = paymentRepository.findByCreatedAt(dateOfTransaction);
+        if (payments.isEmpty())
+            throw new ResourceNotFoundException(NOT_FOUND);
+
+        return getCommissionReportResponses(payments);
+    }
+
+    @Override
+    public List<CommissionReportResponse> getCommissionReportTotalByDateRange(LocalDate startDate, LocalDate endDate) {
+        List<Payment> payments = paymentRepository.findByCreatedAtBetween(startDate, endDate);
+        if (payments.isEmpty())
+            throw new ResourceNotFoundException(NOT_FOUND);
+
+        return getCommissionReportResponses(payments);
     }
 
 

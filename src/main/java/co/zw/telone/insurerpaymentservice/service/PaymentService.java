@@ -27,4 +27,8 @@ public interface PaymentService {
 
     List<TaxReportResponse> getTaxReportByDate(LocalDate dateOfTransaction);
     List<TaxReportResponse> getTaxReportTotal();
+    List<CommissionReportResponse> getCommissionReportTotal();
+    List<CommissionReportResponse> getCommissionReportTotalByInsurerId(Long insurerId);
+    List<CommissionReportResponse> getCommissionReportTotalByDate(LocalDate dateOfTransaction);
+    List<CommissionReportResponse> getCommissionReportTotalByDateRange(LocalDate startDate, LocalDate endDate);
 }
